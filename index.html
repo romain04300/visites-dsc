@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Visites DSC Carrelage</title>
+<meta name="theme-color" content="#2c5d73">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Visites DSC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Appli mobile une colonne : liste des visites, fiche en 7 étapes repliables, barre de total en bas. Palette ardoise + sable (joint) + terre cuite. */
+:root{
+  --bg:#f2f4f3; --card:#ffffff; --fg:#1b2428; --muted:#5f6b70; --line:#d8dedc;
+  --blue:#2c5d73; --blue-soft:#e2edf1; --orange:#c8743a; --orange-soft:#f8ebe1; --sand:#e7dfd2;
+  --ok:#2a8550; --ok-soft:#e1f2e8; --warn:#9c5418; --danger:#bf3b30; --danger-soft:#fbe6e4;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111719; --card:#1a2226; --fg:#e7eceb; --muted:#9caaae; --line:#2c383c;
+  --blue:#6fa9c2; --blue-soft:#18323d; --orange:#e08f55; --orange-soft:#3a2516; --sand:#3a352d;
+  --ok:#55c086; --ok-soft:#163626; --warn:#eba06a; --danger:#ef7064; --danger-soft:#3c1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111719; --card:#1a2226; --fg:#e7eceb; --muted:#9caaae; --line:#2c383c;
+  --blue:#6fa9c2; --blue-soft:#18323d; --orange:#e08f55; --orange-soft:#3a2516; --sand:#3a352d;
+  --ok:#55c086; --ok-soft:#163626; --warn:#eba06a; --danger:#ef7064; --danger-soft:#3c1c1a; color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45}
+img{max-width:100%}[hidden]{display:none!important}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 120px}
+h1,h2,h3{font-family:var(--display);letter-spacing:.01em;text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 16px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px}
+.top .t{flex:1;min-width:0}.top h1{font-size:22px;line-height:1.1}
+.top .sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mark{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:40px;height:40px;flex:none;padding:3px;background:var(--sand);border-radius:6px}
+.mark i{border-radius:2px;background:var(--blue)}.mark i:nth-child(2),.mark i:nth-child(3){background:var(--orange)}
+.mark.big{width:76px;height:76px;gap:5px;padding:5px;border-radius:10px}
+.save{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok);white-space:nowrap}
+.save.busy{background:var(--blue-soft);color:var(--blue)}.save.err{background:var(--danger-soft);color:var(--danger)}
+.btn{border:0;border-radius:10px;min-height:46px;padding:0 18px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--orange);color:#fff}.btn.blue{background:var(--blue);color:#fff}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--fg)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}.btn.sm{min-height:38px;padding:0 12px;font-size:14px}
+.icon-btn{border:0;background:transparent;min-width:44px;min-height:44px;border-radius:10px;font-size:22px;color:var(--muted)}
+.hero{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 0 8px;text-align:center}
+.hero h1{font-size:30px;line-height:1}.hero h1 span{color:var(--orange)}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+.bar{display:flex;gap:10px;margin:14px 0}.bar input{flex:1;min-width:0}
+.cards{display:flex;flex-direction:column;gap:10px}
+.vcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;width:100%}
+.vcard .n{font-weight:700;font-size:17px}.vcard .a{color:var(--muted);font-size:14px;grid-column:1}
+.vcard .m{grid-column:2;grid-row:1 / span 2;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.vcard .ttc{font-variant-numeric:tabular-nums;font-weight:700}
+.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;background:var(--blue-soft);color:var(--blue)}
+.pill.s-envoye{background:var(--orange-soft);color:var(--warn)}.pill.s-signe{background:var(--ok-soft);color:var(--ok)}.pill.s-perdu{background:var(--danger-soft);color:var(--danger)}
+.empty{background:var(--card);border:1.5px dashed var(--line);border-radius:var(--r);padding:24px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-size:17px;margin-bottom:4px}
+.steps{display:flex;gap:6px;margin:0 0 14px}.steps span{flex:1;height:6px;border-radius:3px;background:var(--line)}.steps span.done{background:var(--ok)}
+details.sec,.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px}
+details.sec>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px;min-height:56px;cursor:pointer}
+details.sec>summary::-webkit-details-marker{display:none}
+.num{flex:none;width:32px;height:32px;border-radius:6px;display:grid;place-items:center;font-family:var(--display);font-size:18px;background:var(--blue-soft);color:var(--blue)}
+.sec.complete .num{background:var(--ok);color:#fff}
+summary h2{font-size:21px}summary .hint{font-size:13px;color:var(--muted);font-weight:500}
+summary .chev{transition:transform .2s;color:var(--muted)}details[open] summary .chev{transform:rotate(90deg)}
+.body{padding:0 14px 16px;display:flex;flex-direction:column;gap:14px}
+.panel{padding:14px;display:flex;flex-direction:column;gap:14px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f>label,.lbl{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=search],select,textarea{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;font-size:16px}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;background:var(--card)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;min-height:42px;padding:0 14px;font-weight:600;font-size:15px}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.o[aria-pressed="true"]{background:var(--orange);border-color:var(--orange);color:#fff}
+.yn{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.yn:first-child{border-top:0}.yn span{flex:1;min-width:0}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--bg);min-height:40px;min-width:54px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff}.seg button.no[aria-pressed="true"]{background:var(--muted);color:var(--card)}
+.info{display:flex;align-items:center;gap:12px;background:var(--orange-soft);border-radius:10px;padding:12px}
+.info b{font-family:var(--display);font-size:30px;color:var(--warn);line-height:1;white-space:nowrap}
+.info p{margin:0;font-size:14px}
+.note{font-size:13.5px;color:var(--muted);margin:0}
+.check{display:flex;align-items:flex-start;gap:12px;min-height:44px;padding:8px 0;border-top:1px solid var(--line)}
+.check:first-child{border-top:0}.check input{width:24px;height:24px;flex:none;accent-color:var(--ok);margin-top:1px}
+.lines{display:flex;flex-direction:column;gap:10px}
+.line{display:grid;grid-template-columns:1fr 64px 88px 40px;gap:6px;align-items:center}
+.line input,.room input,.room select{min-height:44px;padding:8px}
+.lhead{display:grid;grid-template-columns:1fr 64px 88px 40px;gap:6px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.room{display:grid;grid-template-columns:1fr 1fr 40px;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.room .full{grid-column:1 / -1}
+.room .dims{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.room .res{grid-column:1 / -1;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.room .res b{color:var(--fg)}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sumgrid div{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
+.sumgrid small{display:block;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sumgrid b{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.calc{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.calc td{padding:7px 0;border-top:1px solid var(--line)}.calc td:last-child{text-align:right;font-weight:600}
+.calc tr.big td{font-size:19px;font-weight:700;border-top:2px solid var(--fg)}.calc tr.acc td{color:var(--warn)}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.ph{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line);max-width:100%}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:16px;line-height:1}
+.add-ph{aspect-ratio:1;border:2px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--blue);font-weight:700;font-size:13px;cursor:pointer}
+.add-ph span{font-size:28px;line-height:1}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dock .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.dock .tot{flex:1;min-width:0}.dock .tot small{display:block;color:var(--muted);font-size:12px}
+.dock .tot b{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.confirm{background:var(--danger-soft);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}.confirm .r{display:flex;gap:8px;flex-wrap:wrap}
+.copybox{width:100%;min-height:200px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.warnbox{background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:380px){.row2{grid-template-columns:1fr}.line,.lhead{grid-template-columns:1fr 54px 76px 36px}.sumgrid b{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="dock" id="dock" hidden></div>
+<div class="toast" id="toast" hidden></div>
+<script>
+const MARK=(c="")=>`<span class="mark ${c}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
+const TRAVAUX=["Sol intérieur","Faïence murale","Salle de bain","Douche à l'italienne","Crédence cuisine","Terrasse / extérieur","Escalier","Plinthes","Piscine","Ragréage / chape","Dépose ancien revêtement","Autre"];
+const STATUTS=[["a-chiffrer","À chiffrer"],["envoye","Devis envoyé"],["signe","Signé"],["perdu","Perdu"]];
+const SUPPORT_SOL=["Dalle béton","Chape","Ancien carrelage","Plancher bois","Parquet / lino à déposer","Terre-plein"];
+const SUPPORT_MUR=["Placo standard","Placo hydro (vert)","Plâtre / enduit","Béton / parpaing","Ancien carrelage","Bois / OSB"];
+const EXISTANT=[["planeite","Planéité (règle 2 m : écart en mm)"],["niveau","Niveau / faux niveau, pente existante"],["humidite","Humidité, remontées capillaires, salpêtre"],["fissures","Fissures, joints de dilatation, désolidarisation"],["sonne","Ancien carrelage qui sonne creux / se décolle"],["hauteur","Hauteur dispo : seuils, portes à raboter"],["menuiseries","Menuiseries, baignoire, receveur en place"],["plomberie","Sanitaires à déposer / reposer (WC, lavabo…)"],["elec","Prises, interrupteurs à décaler"],["autre","Autre réserve"]];
+const POSES=["Droite","Décalée 1/2","Décalée 1/3","Diagonale","Chevron","Bâton rompu","Opus / multi-format"];
+const PHOTOS=["Vue générale de chaque pièce","Support (sol et murs)","Seuils et bas de portes","Angles, niches, tablier de baignoire","Accès / stockage / benne","Défauts existants"];
+const VALID=[["calepinage","Calepinage validé (sens de pose, point de départ, coupes)"],["joint","Couleur et largeur de joint validées"],["fourni","Qui fournit le carrelage (nous ou le client)"],["depose","Dépose et évacuation des gravats : comprises ou non"],["plomb","Dépose / repose des sanitaires : qui s'en occupe"],["sechage","Temps de séchage expliqué (ragréage, chape, joints)"],["conditions","Conditions : acompte, validité, paiement"],["mention","Mention TVA réduite à faire certifier (10 % ou 5,5 %)"]];
+const DEF_SET={entreprise:"DSC Création Carrelage",tauxH:"",tauxJ:"",acompte:"30",chute:"10"};
+
+let assets=null, visits=[], cur=null, view="list", q="", saveState="ok", saveTimer=null, writing=false, pending=false, confirmDel=false, showCopy=false, settings={...DEF_SET};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur=n=>(Math.round((+n||0)*100)/100).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+const m2=n=>(Math.round((+n||0)*100)/100).toLocaleString("fr-FR",{maximumFractionDigits:2});
+const num=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:0};
+const today=()=>new Date().toISOString().slice(0,10);
+const addDays=(d,n)=>{if(!d)return"";const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const frDate=d=>d?new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
+const newRoom=()=>({nom:"",type:"Sol",L:"",l:"",h:"",ded:""});
+
+function blank(){return{date:today(),client:{nom:"",tel:"",email:"",adresse:"",facturation:"",type:"Particulier",occupant:"Propriétaire",payeur:"",origine:""},
+acces:{stationnement:false,etage:"",ascenseur:false,code:"",stockage:false,benne:false,contraintes:""},
+travaux:[],demande:"",tvaQ:{plus2ans:null,energie:null,neufPro:null,refaitNeuf:null},tvaForce:"",
+supportSol:[],supportMur:[],chauffageSol:null,existant:{},
+pieces:[newRoom()],plinthes:"",nezMarche:"",seuils:"",profiles:"",photos:[],photosFaites:[],
+carrelage:{ref:"",format:"",epaisseur:"",rectifie:null,pose:"Droite",joint:"",couleurJoint:"",fournisseur:"Nous",prixM2:"",m2Boite:"",chute:""},
+douche:{dim:"",etancheite:"",evac:"",pente:"",niche:""},
+fournitures:[{d:"",q:"",pu:""}],moMode:"h",heures:"",jours:"",
+valid:{},budget:"",suivi:{envoye:"",signe:"",intervention:""},statut:"a-chiffrer",notes:"",createdAt:Date.now(),updatedAt:Date.now()}}
+
+function surfaces(v){let sol=0,mur=0;for(const p of v.pieces||[]){let s;if(p.type==="Mur")s=num(p.L)*num(p.h)-num(p.ded);else s=num(p.L)*num(p.l)-num(p.ded);s=Math.max(0,s);p.type==="Mur"?mur+=s:sol+=s}
+ const chute=v.carrelage.chute!==""?num(v.carrelage.chute):autoChute(v);const total=sol+mur;const cmd=total*(1+chute/100);
+ const boites=num(v.carrelage.m2Boite)>0?Math.ceil(cmd/num(v.carrelage.m2Boite)):0;return{sol,mur,total,chute,cmd,boites}}
+function autoChute(v){const p=v.carrelage.pose;let c=num(settings.chute)||10;if(["Diagonale","Chevron","Bâton rompu"].includes(p))c=Math.max(c,15);const f=String(v.carrelage.format).match(/(\d+)\s*[x×*]\s*(\d+)/i);if(f&&Math.max(+f[1],+f[2])>=120)c=Math.max(c,15);return c}
+function tvaAuto(v){const t=v.tvaQ||{};if(t.neufPro===true||t.refaitNeuf===true)return 20;if(t.plus2ans===true&&t.energie===true)return 5.5;if(t.plus2ans===true)return 10;if(t.plus2ans===false)return 20;return null}
+function tvaRate(v){return v.tvaForce!==""&&v.tvaForce!=null?+v.tvaForce:(tvaAuto(v)??10)}
+function totals(v){const s=surfaces(v);const carr=v.carrelage.fournisseur==="Nous"?s.cmd*num(v.carrelage.prixM2):0;
+ const f=carr+(v.fournitures||[]).reduce((a,l)=>a+num(l.q)*num(l.pu),0);
+ const mo=v.moMode==="j"?num(v.jours)*num(settings.tauxJ):num(v.heures)*num(settings.tauxH);
+ const ht=f+mo,r=tvaRate(v),tva=ht*r/100,ttc=ht+tva;return{carr,f,mo,ht,r,tva,ttc,acompte:ttc*num(settings.acompte)/100,s}}
+function done(v){const s=surfaces(v);return[!!(v.client.nom&&(v.client.tel||v.client.email)&&v.client.adresse),!!(v.travaux.length&&(tvaAuto(v)!=null||v.tvaForce)),(v.supportSol.length||v.supportMur.length)&&Object.values(v.existant).filter(Boolean).length>=2,s.total>0,!!(v.carrelage.format&&v.carrelage.pose),totals(v).ht>0,Object.values(v.valid).filter(Boolean).length>=5]}
+
+/* stockage local */
+let idb=null;
+function openIDB(){return new Promise((res,rej)=>{if(!("indexedDB" in window))return rej();const r=indexedDB.open("visites-dsc",1);
+ r.onupgradeneeded=()=>{const d=r.result;["visites","photos","reglages"].forEach(n=>{if(!d.objectStoreNames.contains(n))d.createObjectStore(n,n==="visites"?{keyPath:"id"}:undefined)})};
+ r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function tx(store,mode,fn){return new Promise((res,rej)=>{const t=idb.transaction(store,mode);let out;const r=fn(t.objectStore(store));if(r)r.onsuccess=()=>out=r.result;t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
+const LS="visites-dsc";
+const store={
+ async all(){if(idb)return (await tx("visites","readonly",s=>s.getAll()))||[];try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return[]}},
+ async put(v){if(idb)return tx("visites","readwrite",s=>s.put(v));const a=await store.all();const i=a.findIndex(x=>x.id===v.id);i<0?a.push(v):a[i]=v;localStorage.setItem(LS,JSON.stringify(a))},
+ async del(id){if(idb)return tx("visites","readwrite",s=>s.delete(id));localStorage.setItem(LS,JSON.stringify((await store.all()).filter(x=>x.id!==id)))},
+ async putPhoto(id,b){return tx("photos","readwrite",s=>s.put(b,id))},async getPhoto(id){return tx("photos","readonly",s=>s.get(id))},async delPhoto(id){return tx("photos","readwrite",s=>s.delete(id))},
+ async getSet(){try{if(idb)return await tx("reglages","readonly",s=>s.get("reglages"));return JSON.parse(localStorage.getItem(LS+"-reglages")||"null")}catch(e){return null}},
+ async putSet(v){if(idb)return tx("reglages","readwrite",s=>s.put(v,"reglages"));localStorage.setItem(LS+"-reglages",JSON.stringify(v))}};
+const photoURL=new Map();
+async function hydratePhotos(){for(const img of document.querySelectorAll("img[data-ph]")){const id=img.dataset.ph;if(!photoURL.has(id)){try{const b=await store.getPhoto(id);if(b)photoURL.set(id,URL.createObjectURL(b))}catch(e){}}if(photoURL.has(id))img.src=photoURL.get(id)}}
+const sortV=()=>visits.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+async function init(){try{idb=await openIDB();assets=true}catch(e){idb=null;assets=null}
+ try{navigator.storage?.persist?.()}catch(e){}
+ settings={...DEF_SET,...(await store.getSet()||{})};visits=await store.all();sortV();
+ if(!num(settings.tauxH)&&!num(settings.tauxJ))view="settings";render();
+ if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{})}
+function schedule(){cur.updatedAt=Date.now();pending=true;setSave("busy");clearTimeout(saveTimer);saveTimer=setTimeout(flush,600);paintDock()}
+async function flush(){if(!cur)return;if(writing){saveTimer=setTimeout(flush,300);return}pending=false;writing=true;const body=structuredClone(cur);
+ try{await store.put(body);const i=visits.findIndex(x=>x.id===body.id);i<0?visits.unshift(body):visits[i]=body;sortV();setSave(pending?"busy":"ok")}
+ catch(e){setSave("err");toast("Pas enregistré : la mémoire du téléphone est peut-être pleine.")}finally{writing=false}}
+function setSave(s){saveState=s;const el=$("#save");if(!el)return;el.className="save"+(s==="busy"?" busy":s==="err"?" err":"");el.textContent=s==="busy"?"Enregistrement…":s==="err"?"Non enregistré":"Enregistré"}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,2600)}
+
+/* écrans */
+const sel=(k,o,val,cls="")=>`<div class="chips">${o.map(x=>`<button type="button" class="chip ${cls}" data-pick="${k}" data-v="${esc(x)}" aria-pressed="${val===x}">${esc(x)}</button>`).join("")}</div>`;
+const multi=(k,o,arr)=>`<div class="chips">${o.map(x=>`<button type="button" class="chip" data-multi="${k}" data-v="${esc(x)}" aria-pressed="${(arr||[]).includes(x)}">${esc(x)}</button>`).join("")}</div>`;
+const yn=(k,label,val)=>`<div class="yn"><span>${label}</span><div class="seg" role="group" aria-label="${esc(label)}"><button type="button" data-yn="${k}" data-v="1" aria-pressed="${val===true}">Oui</button><button type="button" class="no" data-yn="${k}" data-v="0" aria-pressed="${val===false}">Non</button></div></div>`;
+const inp=(k,label,val,type="text",ph="",dec=false)=>`<div class="f"><label for="i-${k}">${label}</label><input id="i-${k}" type="${type}" data-k="${k}" value="${esc(val)}" placeholder="${esc(ph)}" ${dec?'inputmode="decimal"':""}></div>`;
+const sec=(n,title,hint,inner,ok,open)=>`<details class="sec${ok?" complete":""}" data-sec="${n}" ${open?"open":""}><summary><span class="num">${ok?"✓":n}</span><span style="flex:1;min-width:0"><h2>${title}</h2><span class="hint">${hint}</span></span><span class="chev">›</span></summary><div class="body">${inner}</div></details>`;
+let openSecs=new Set(["1"]);
+
+function renderSettings(){const first=!num(settings.tauxH)&&!num(settings.tauxJ);
+ return `<div class="top">${first?"":`<button class="icon-btn" data-act="tolist" aria-label="Retour">‹</button>`}${MARK()}<div class="t"><h1>Réglages</h1><div class="sub">Tes tarifs, utilisés dans tous les calculs</div></div></div>
+ ${first?`<p class="note" style="margin-bottom:12px">Bienvenue ! Commence par entrer tes tarifs. Tu pourras les changer à tout moment avec la roue ⚙ sur l'accueil.</p>`:""}
+ <div class="panel">${["entreprise","tauxH","tauxJ","acompte","chute"].map(k=>({entreprise:["Nom de l'entreprise","text",""],tauxH:["Taux horaire main d'œuvre (€ HT / h)","text","ex. 45"],tauxJ:["Prix de la journée (€ HT)","text","ex. 350"],acompte:["Acompte à la signature (%)","text","30"],chute:["Chute par défaut (%)","text","10"]})[k]).map((d,i)=>{const k=["entreprise","tauxH","tauxJ","acompte","chute"][i];return `<div class="f"><label for="s-${k}">${d[0]}</label><input id="s-${k}" type="text" ${k!=="entreprise"?'inputmode="decimal"':""} data-set="${k}" value="${esc(settings[k])}" placeholder="${d[2]}"></div>`}).join("")}
+ <p class="note">La chute passe automatiquement à 15 % pour la diagonale, le chevron, le bâton rompu et les grands formats (120 cm et plus).</p>
+ <button class="btn primary" data-act="tolist">Enregistrer</button></div>`}
+
+function renderList(){const f=q.trim().toLowerCase();const list=visits.filter(v=>!f||[v.client?.nom,v.client?.adresse,v.client?.tel].join(" ").toLowerCase().includes(f));const st=Object.fromEntries(STATUTS);
+ const name=String(settings.entreprise||"DSC Création Carrelage");const parts=name.split(" ");
+ return `<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="icon-btn" data-act="settings" aria-label="Réglages">⚙</button></div>
+ <div class="hero" style="padding-top:0">${MARK("big")}<h1>${esc(parts[0])} <span>${esc(parts.slice(1).join(" "))}</span></h1><p>Fiches de visite avant devis</p></div>
+ <button class="btn primary" style="width:100%" data-act="new">+ Nouvelle visite</button>
+ <div class="bar"><input type="search" id="q" placeholder="Chercher un client, une adresse…" value="${esc(q)}" aria-label="Chercher"></div>
+ <p class="note" style="margin-bottom:10px">Tes fiches restent sur ce téléphone, même sans réseau. Fais une sauvegarde de temps en temps.</p>
+ <div class="cards">${list.length?list.map(v=>`<button class="vcard" data-open="${esc(v.id)}"><span class="n">${esc(v.client?.nom||"Client sans nom")}</span>
+ <span class="m"><span class="pill s-${esc(v.statut)}">${esc(st[v.statut]||"À chiffrer")}</span><span class="ttc">${totals(v).ht>0?eur(totals(v).ttc):""}</span></span>
+ <span class="a">${esc(v.client?.adresse||"Adresse à compléter")} · ${frDate(v.date)}${surfaces(v).total?` · ${m2(surfaces(v).total)} m²`:""}</span></button>`).join("")
+ :`<div class="empty"><b>${f?"Aucune visite trouvée":"Pas encore de visite"}</b>${f?"Essaie un autre nom.":"Appuie sur « Nouvelle visite » chez le client : tout s'enregistre au fil de l'eau."}</div>`}</div>
+ <div class="bar" style="margin-top:22px;flex-wrap:wrap"><button class="btn ghost sm" data-act="export">Sauvegarder mes fiches</button><label class="btn ghost sm" style="cursor:pointer">Restaurer une sauvegarde<input type="file" id="imp" accept="application/json,.json" hidden></label></div>`}
+
+function roomsHTML(v){return v.pieces.map((p,i)=>{const isMur=p.type==="Mur";const s=Math.max(0,isMur?num(p.L)*num(p.h)-num(p.ded):num(p.L)*num(p.l)-num(p.ded));
+ return `<div class="room"><input type="text" aria-label="Nom de la pièce" data-room="${i}" data-f="nom" value="${esc(p.nom)}" placeholder="Pièce (SDB, cuisine…)"><select aria-label="Sol ou mur" data-room="${i}" data-f="type"><option ${!isMur?"selected":""}>Sol</option><option ${isMur?"selected":""}>Mur</option></select><button type="button" class="icon-btn" data-rmroom="${i}" aria-label="Supprimer la pièce">×</button>
+ <div class="dims"><input type="text" inputmode="decimal" aria-label="Longueur en mètres" data-room="${i}" data-f="L" value="${esc(p.L)}" placeholder="${isMur?"Long. murs (m)":"Longueur (m)"}"><input type="text" inputmode="decimal" aria-label="${isMur?"Hauteur carrelée en mètres":"Largeur en mètres"}" data-room="${i}" data-f="${isMur?"h":"l"}" value="${esc(isMur?p.h:p.l)}" placeholder="${isMur?"Hauteur (m)":"Largeur (m)"}"><input type="text" inputmode="decimal" aria-label="À déduire en m²" data-room="${i}" data-f="ded" value="${esc(p.ded)}" placeholder="À déduire m²"></div>
+ <div class="res" data-res="${i}">= <b>${m2(s)} m²</b> ${isMur?"de mur (périmètre × hauteur, moins portes et fenêtres)":"de sol"}</div></div>`}).join("")}
+function surfHTML(v){const s=surfaces(v);return `<div class="sumgrid"><div><small>Sol</small><b>${m2(s.sol)}</b></div><div><small>Murs</small><b>${m2(s.mur)}</b></div><div><small>À commander</small><b>${m2(s.cmd)}</b></div></div>
+ <p class="note">Total ${m2(s.total)} m² + ${m2(s.chute)} % de chute = ${m2(s.cmd)} m²${s.boites?` · soit <b>${s.boites} boîtes</b>`:""}.</p>`}
+
+function renderForm(){const v=cur,d=done(v),t=totals(v),ta=tvaAuto(v);
+ const s1=`${inp("date","Date de la visite",v.date,"date")}${inp("client.nom","Nom du client",v.client.nom,"text","M. et Mme …")}
+ <div class="row2">${inp("client.tel","Téléphone",v.client.tel,"tel","06 …")}${inp("client.email","E-mail",v.client.email,"email","pour envoyer le devis")}</div>
+ ${inp("client.adresse","Adresse du chantier",v.client.adresse,"text","rue, commune")}${inp("client.facturation","Adresse de facturation (si différente)",v.client.facturation)}
+ <div class="f"><span class="lbl">Type de client</span>${sel("client.type",["Particulier","Professionnel","Syndic / agence"],v.client.type)}</div>
+ <div class="f"><span class="lbl">Occupant</span>${sel("client.occupant",["Propriétaire","Locataire"],v.client.occupant)}</div>
+ ${v.client.occupant==="Locataire"||v.client.type!=="Particulier"?inp("client.payeur","Qui paie / qui valide le devis ?",v.client.payeur):""}
+ ${inp("client.origine","Comment il nous a connus",v.client.origine,"text","bouche-à-oreille, Google, voisin…")}
+ <div class="f"><span class="lbl">Accès et logistique</span>${yn("acces.stationnement","Stationnement facile pour le camion",v.acces.stationnement)}${yn("acces.ascenseur","Ascenseur",v.acces.ascenseur)}${yn("acces.stockage","Place pour stocker les palettes de carrelage",v.acces.stockage)}${yn("acces.benne","Benne / évacuation gravats possible",v.acces.benne)}</div>
+ <div class="row2">${inp("acces.etage","Étage",v.acces.etage)}${inp("acces.code","Code / clés",v.acces.code)}</div>${inp("acces.contraintes","Horaires, animaux, pièces à garder utilisables",v.acces.contraintes)}`;
+ const s2=`<div class="f"><span class="lbl">Type de travaux (plusieurs choix)</span>${multi("travaux",TRAVAUX,v.travaux)}</div>
+ <div class="f"><label for="i-demande">Ce que veut le client, avec ses mots</label><textarea id="i-demande" data-k="demande">${esc(v.demande)}</textarea></div>
+ <div class="f"><span class="lbl">Questions pour la TVA</span>${yn("tvaQ.plus2ans","Logement d'habitation de plus de 2 ans ?",v.tvaQ.plus2ans)}${yn("tvaQ.energie","Travaux de rénovation énergétique éligibles ?",v.tvaQ.energie)}${yn("tvaQ.neufPro","Logement neuf (- de 2 ans) ou local pro ?",v.tvaQ.neufPro)}${yn("tvaQ.refaitNeuf","Travaux qui refont du neuf (agrandissement, gros œuvre) ?",v.tvaQ.refaitNeuf)}</div>
+ <div class="info"><b>${ta==null?"?":String(ta).replace(".",",")+" %"}</b><p>${ta==null?"Réponds aux questions pour connaître la TVA.":ta<20?"TVA réduite : le client doit certifier la mention sur le devis (plus d'attestation depuis février 2025).":"TVA normale."}</p></div>
+ <div class="f"><label for="i-tvaForce">Forcer un autre taux</label><select id="i-tvaForce" data-k="tvaForce"><option value="">Automatique</option>${[5.5,10,20].map(r=>`<option value="${r}" ${String(v.tvaForce)===String(r)?"selected":""}>${String(r).replace(".",",")} %</option>`).join("")}</select></div>`;
+ const s3=`<div class="f"><span class="lbl">Support au sol</span>${multi("supportSol",SUPPORT_SOL,v.supportSol)}</div>
+ <div class="f"><span class="lbl">Support aux murs</span>${multi("supportMur",SUPPORT_MUR,v.supportMur)}</div>
+ ${v.supportMur.includes("Placo standard")&&(v.travaux.includes("Salle de bain")||v.travaux.includes("Douche à l'italienne"))?`<div class="warnbox">Placo standard en pièce humide : prévoir un SPEC (étanchéité sous carrelage) ou du placo hydro.</div>`:""}
+ ${yn("chauffageSol","Chauffage au sol",v.chauffageSol)}
+ ${v.chauffageSol?`<p class="note">Chauffage au sol : colle adaptée (C2), vérifier que la chape a été mise en chauffe avant la pose.</p>`:""}
+ ${EXISTANT.map(([k,l])=>inp("existant."+k,l,v.existant[k])).join("")}`;
+ const s4=`<p class="note">Une ligne par surface. Sol : longueur × largeur. Mur : longueur totale des murs × hauteur carrelée. Mets dans « à déduire » les portes, fenêtres et baignoire.</p>
+ <div class="lines" id="rooms">${roomsHTML(v)}</div><button type="button" class="btn ghost sm" data-act="addroom">+ Ajouter une surface</button>
+ <div id="surf">${surfHTML(v)}</div>
+ <div class="row2">${inp("plinthes","Plinthes (mètres linéaires)",v.plinthes,"text","",true)}${inp("profiles","Profilés / baguettes d'angle (ml)",v.profiles,"text","",true)}</div>
+ <div class="row2">${inp("nezMarche","Nez de marche (nombre)",v.nezMarche,"text","",true)}${inp("seuils","Seuils / barres de seuil (nombre)",v.seuils,"text","",true)}</div>
+ <div class="f"><span class="lbl">Photos</span><div class="photos">${(v.photos||[]).map(id=>`<div class="ph"><img data-ph="${esc(id)}" alt="Photo du chantier"><button type="button" data-delph="${esc(id)}" aria-label="Retirer la photo">×</button></div>`).join("")}
+ ${assets?`<label class="add-ph"><span>+</span>Photo<input type="file" id="phin" accept="image/*" multiple hidden></label>`:""}</div></div>
+ <div class="f"><span class="lbl">Photos à prendre</span>${PHOTOS.map(p=>`<label class="check"><input type="checkbox" data-multi-cb="photosFaites" value="${esc(p)}" ${v.photosFaites.includes(p)?"checked":""}><span>${esc(p)}</span></label>`).join("")}</div>`;
+ const c=v.carrelage,dou=v.douche,showDouche=v.travaux.includes("Douche à l'italienne");
+ const s5=`${inp("carrelage.ref","Référence / modèle choisi",c.ref,"text","marque, gamme, couleur")}
+ <div class="row2">${inp("carrelage.format","Format (cm)",c.format,"text","60x60, 120x60…")}${inp("carrelage.epaisseur","Épaisseur (mm)",c.epaisseur,"text","",true)}</div>
+ ${yn("carrelage.rectifie","Carrelage rectifié",c.rectifie)}
+ <div class="f"><span class="lbl">Type de pose</span>${sel("carrelage.pose",POSES,c.pose,"o")}</div>
+ <div class="row2">${inp("carrelage.joint","Largeur de joint (mm)",c.joint,"text",c.rectifie?"2":"3",true)}${inp("carrelage.couleurJoint","Couleur du joint",c.couleurJoint,"text","gris clair, anthracite…")}</div>
+ <div class="f"><span class="lbl">Carrelage fourni par</span>${sel("carrelage.fournisseur",["Nous","Le client"],c.fournisseur)}</div>
+ ${c.fournisseur==="Nous"?`<div class="row2">${inp("carrelage.prixM2","Prix du carrelage (€ HT / m²)",c.prixM2,"text","",true)}${inp("carrelage.m2Boite","m² par boîte",c.m2Boite,"text","ex. 1,44",true)}</div>`:`${inp("carrelage.m2Boite","m² par boîte (pour dire au client combien en acheter)",c.m2Boite,"text","ex. 1,44",true)}`}
+ ${inp("carrelage.chute","Chute (%) — vide = automatique ("+autoChute(v)+" %)",c.chute,"text","",true)}
+ ${showDouche?`<div class="f"><span class="lbl">Douche à l'italienne</span></div>${inp("douche.dim","Dimensions de la douche (cm)",dou.dim)}${inp("douche.etancheite","Étanchéité : SPEC, natte, receveur à carreler",dou.etancheite)}${inp("douche.evac","Évacuation : siphon centré, caniveau, emplacement",dou.evac)}${inp("douche.pente","Pente prévue / hauteur dispo sous carrelage",dou.pente)}${inp("douche.niche","Niche, banc, paroi, receveur extra-plat",dou.niche)}`:""}`;
+ const s6=`<div class="lhead"><span>Fourniture</span><span>Qté</span><span>PU HT</span><span></span></div>
+ <div class="lines">${v.fournitures.map((l,i)=>`<div class="line"><input type="text" aria-label="Fourniture ${i+1}" data-line="${i}" data-f="d" value="${esc(l.d)}" placeholder="colle, joint, primaire…"><input type="text" inputmode="decimal" aria-label="Quantité" data-line="${i}" data-f="q" value="${esc(l.q)}"><input type="text" inputmode="decimal" aria-label="Prix unitaire HT" data-line="${i}" data-f="pu" value="${esc(l.pu)}"><button type="button" class="icon-btn" data-rmline="${i}" aria-label="Supprimer la ligne">×</button></div>`).join("")}</div>
+ <div class="bar" style="margin:0;flex-wrap:wrap"><button type="button" class="btn ghost sm" data-act="addline">+ Ajouter une fourniture</button><button type="button" class="btn ghost sm" data-act="suggest">Proposer colle / joint / primaire</button></div>
+ <div class="f"><span class="lbl">Main d'œuvre</span>${sel("moMode",["À l'heure","À la journée"],v.moMode==="j"?"À la journée":"À l'heure","o")}</div>
+ ${v.moMode==="j"?inp("jours","Nombre de journées ("+(num(settings.tauxJ)?eur(num(settings.tauxJ)):"tarif à régler")+" / jour)",v.jours,"text","",true):inp("heures","Temps estimé en heures ("+(num(settings.tauxH)?eur(num(settings.tauxH)):"tarif à régler")+" / h)",v.heures,"text","",true)}
+ ${(v.moMode==="j"?!num(settings.tauxJ):!num(settings.tauxH))?`<div class="warnbox">Tarif non réglé : appuie sur ⚙ dans l'accueil pour l'entrer.</div>`:""}
+ <p class="note">Pense au temps de dépose, ragréage, découpes, plinthes et joints. Les grands formats et la diagonale prennent nettement plus de temps.</p>
+ <table class="calc"><tbody id="calc">${calcRows(t)}</tbody></table>`;
+ const s7=`${VALID.map(([k,l])=>`<label class="check"><input type="checkbox" data-k="valid.${k}" ${v.valid[k]?"checked":""}><span>${l}</span></label>`).join("")}
+ ${inp("budget","Budget annoncé par le client (€)",v.budget)}
+ <div class="f"><span class="lbl">Où en est le devis</span>${sel("statut",STATUTS.map(s=>s[1]),(STATUTS.find(s=>s[0]===v.statut)||STATUTS[0])[1])}</div>
+ <div class="row2">${inp("suivi.envoye","Devis envoyé le",v.suivi.envoye,"date")}<div class="f"><span class="lbl">Relance à faire le</span><input type="text" readonly value="${v.suivi.envoye?frDate(addDays(v.suivi.envoye,7)):"7 jours après l'envoi"}" aria-label="Relance"></div></div>
+ <div class="row2">${inp("suivi.signe","Signé / acompte reçu le",v.suivi.signe,"date")}${inp("suivi.intervention","Date d'intervention",v.suivi.intervention,"date")}</div>
+ <div class="f"><label for="i-notes">Notes libres</label><textarea id="i-notes" data-k="notes">${esc(v.notes)}</textarea></div>
+ <div class="bar" style="margin:0;flex-wrap:wrap"><button type="button" class="btn blue" data-act="copy">Copier le résumé</button>${navigator.share?`<button type="button" class="btn ghost" data-act="share">Envoyer le résumé</button>`:""}</div>
+ ${showCopy?`<textarea class="copybox" id="copybox" readonly aria-label="Résumé">${esc(summary(v))}</textarea><p class="note">La copie automatique a été refusée : sélectionne le texte et copie-le.</p>`:""}
+ ${confirmDel?`<div class="confirm"><b>Supprimer cette visite pour de bon ?</b><div class="r"><button type="button" class="btn danger sm" data-act="del-yes">Oui, supprimer</button><button type="button" class="btn ghost sm" data-act="del-no">Annuler</button></div></div>`:`<button type="button" class="btn ghost sm" data-act="del">Supprimer la visite</button>`}`;
+ const secs=[["Client et chantier","Coordonnées, accès, logistique",s1],["Travaux et TVA","Ce qu'il veut, quel taux",s2],["Supports et existant","Ce que tu constates sur place",s3],["Surfaces et photos","m² par pièce, chute, linéaires",s4],["Carrelage et pose","Format, pose, joint, douche",s5],["Fournitures et temps","Calcul du devis",s6],["Avant de partir","À valider et suivi",s7]];
+ return `<div class="top"><button class="icon-btn" data-act="back" aria-label="Retour aux visites">‹</button>${MARK()}<div class="t"><h1>${esc(v.client.nom||"Nouvelle visite")}</h1><div class="sub">${esc(v.client.adresse||frDate(v.date))}</div></div><span class="save" id="save">Enregistré</span></div>
+ <div class="steps" id="steps">${d.map(x=>`<span class="${x?"done":""}"></span>`).join("")}</div>
+ ${secs.map((s,i)=>sec(i+1,s[0],s[1],s[2],d[i],openSecs.has(String(i+1)))).join("")}`}
+function calcRows(t){return `${t.carr?`<tr><td>Carrelage (${m2(t.s.cmd)} m²)</td><td>${eur(t.carr)}</td></tr>`:""}<tr><td>Fournitures HT${t.carr?" (carrelage compris)":""}</td><td>${eur(t.f)}</td></tr><tr><td>Main d'œuvre HT</td><td>${eur(t.mo)}</td></tr><tr><td>Total HT</td><td>${eur(t.ht)}</td></tr><tr><td>TVA ${String(t.r).replace(".",",")} %</td><td>${eur(t.tva)}</td></tr><tr class="big"><td>Total TTC</td><td>${eur(t.ttc)}</td></tr><tr class="acc"><td>Acompte ${m2(num(settings.acompte))} % à la signature</td><td>${eur(t.acompte)}</td></tr>`}
+function summary(v){const t=totals(v),s=t.s,L=[];const p=(a,b)=>{if(b!==""&&b!=null&&b!==false&&!(Array.isArray(b)&&!b.length))L.push(a+" : "+(b===true?"oui":Array.isArray(b)?b.join(", "):b))};
+ L.push("FICHE DE VISITE — "+String(settings.entreprise).toUpperCase()+" — "+frDate(v.date));L.push("");
+ p("Client",v.client.nom);p("Téléphone",v.client.tel);p("E-mail",v.client.email);p("Chantier",v.client.adresse);p("Facturation",v.client.facturation);p("Type",v.client.type+" · "+v.client.occupant);p("Payeur",v.client.payeur);
+ L.push("");p("Travaux",v.travaux);p("Demande",v.demande);p("TVA",String(t.r).replace(".",",")+" %");
+ L.push("");L.push("SUPPORTS ET EXISTANT");p("Sol",v.supportSol);p("Murs",v.supportMur);if(v.chauffageSol!=null)p("Chauffage au sol",v.chauffageSol?"oui":"non");EXISTANT.filter(([k])=>v.existant[k]).forEach(([k,l])=>L.push("- "+l+" : "+v.existant[k]));
+ L.push("");L.push("SURFACES");v.pieces.filter(x=>num(x.L)).forEach(x=>{const m=x.type==="Mur";const a=Math.max(0,m?num(x.L)*num(x.h)-num(x.ded):num(x.L)*num(x.l)-num(x.ded));L.push("- "+(x.nom||"Pièce")+" ("+x.type.toLowerCase()+") : "+m2(a)+" m²")});
+ L.push("Total sol "+m2(s.sol)+" m² · murs "+m2(s.mur)+" m² · à commander "+m2(s.cmd)+" m² ("+m2(s.chute)+" % de chute)"+(s.boites?" · "+s.boites+" boîtes":""));
+ p("Plinthes (ml)",v.plinthes);p("Profilés (ml)",v.profiles);p("Nez de marche",v.nezMarche);p("Seuils",v.seuils);
+ const c=v.carrelage;L.push("");L.push("CARRELAGE");p("Modèle",c.ref);p("Format",c.format);p("Épaisseur (mm)",c.epaisseur);if(c.rectifie!=null)p("Rectifié",c.rectifie?"oui":"non");p("Pose",c.pose);p("Joint",[c.joint&&c.joint+" mm",c.couleurJoint].filter(Boolean).join(", "));p("Fourni par",c.fournisseur);
+ if(v.travaux.includes("Douche à l'italienne")){L.push("");L.push("DOUCHE À L'ITALIENNE");p("Dimensions",v.douche.dim);p("Étanchéité",v.douche.etancheite);p("Évacuation",v.douche.evac);p("Pente",v.douche.pente);p("Équipements",v.douche.niche)}
+ const fl=v.fournitures.filter(l=>l.d||num(l.pu));L.push("");L.push("CHIFFRAGE");if(t.carr)L.push("- Carrelage "+m2(s.cmd)+" m² × "+eur(num(c.prixM2))+" = "+eur(t.carr)+" HT");fl.forEach(l=>L.push("- "+(l.d||"?")+" × "+(l.q||1)+" à "+eur(num(l.pu))+" HT"));
+ L.push(v.moMode==="j"?"Main d'œuvre : "+num(v.jours)+" j × "+eur(num(settings.tauxJ))+" = "+eur(t.mo)+" HT":"Main d'œuvre : "+num(v.heures)+" h × "+eur(num(settings.tauxH))+" = "+eur(t.mo)+" HT");
+ L.push("Total HT : "+eur(t.ht));L.push("TVA "+String(t.r).replace(".",",")+" % : "+eur(t.tva));L.push("Total TTC : "+eur(t.ttc));L.push("Acompte "+m2(num(settings.acompte))+" % : "+eur(t.acompte));
+ if(v.notes){L.push("");p("Notes",v.notes)}return L.join("\n")}
+
+function render(){const app=$("#app");if(view==="list"){app.innerHTML=renderList();$("#dock").hidden=true}else if(view==="settings"){app.innerHTML=renderSettings();$("#dock").hidden=true}else{app.innerHTML=renderForm();setSave(saveState);paintDock();hydratePhotos()}}
+function paintDock(){const d=$("#dock");if(view!=="form"||!cur){d.hidden=true;return}const t=totals(cur);d.hidden=false;
+ d.innerHTML=`<div class="in"><div class="tot"><small>${m2(t.s.total)} m² · TVA ${String(t.r).replace(".",",")} % · acompte ${eur(t.acompte)}</small><b>${eur(t.ttc)}</b></div><button class="btn primary" data-act="back">Terminer</button></div>`;
+ const c=$("#calc");if(c)c.innerHTML=calcRows(t);const sf=$("#surf");if(sf)sf.innerHTML=surfHTML(cur);
+ cur.pieces.forEach((p,i)=>{const r=document.querySelector(`[data-res="${i}"] b`);if(r){const m=p.type==="Mur";r.textContent=m2(Math.max(0,m?num(p.L)*num(p.h)-num(p.ded):num(p.L)*num(p.l)-num(p.ded)))+" m²"}});
+ const st=$("#steps");if(st)st.innerHTML=done(cur).map(x=>`<span class="${x?"done":""}"></span>`).join("")}
+function setPath(o,path,val){const ks=path.split(".");let x=o;for(let i=0;i<ks.length-1;i++){x[ks[i]]=x[ks[i]]||{};x=x[ks[i]]}x[ks.at(-1)]=val}
+function getPath(o,path){return path.split(".").reduce((x,k)=>x?.[k],o)}
+function rerenderKeepScroll(){const y=window.scrollY;render();window.scrollTo(0,y)}
+let setTimer=null;
+document.addEventListener("input",e=>{const el=e.target;
+ if(el.id==="q"){q=el.value;const pos=el.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}return}
+ if(el.dataset.set){settings[el.dataset.set]=el.value;clearTimeout(setTimer);setTimer=setTimeout(()=>store.putSet(settings).catch(()=>toast("Réglages non enregistrés")),400);return}
+ if(!cur)return;
+ if(el.dataset.k&&el.type!=="checkbox"){setPath(cur,el.dataset.k,el.value);schedule();
+  if(el.dataset.k==="client.nom")$(".top h1").textContent=el.value||"Nouvelle visite";
+  if(el.dataset.k==="client.adresse")$(".top .sub").textContent=el.value||frDate(cur.date);
+  if(["suivi.envoye","tvaForce"].includes(el.dataset.k))rerenderKeepScroll()}
+ if(el.dataset.line!=null){cur.fournitures[+el.dataset.line][el.dataset.f]=el.value;schedule()}
+ if(el.dataset.room!=null&&el.tagName==="INPUT"){cur.pieces[+el.dataset.room][el.dataset.f]=el.value;schedule()}});
+document.addEventListener("change",e=>{const el=e.target;
+ if(el.id==="imp"&&el.files[0]){importAll(el.files[0]);return}
+ if(!cur)return;
+ if(el.type==="checkbox"&&el.dataset.k){setPath(cur,el.dataset.k,el.checked);schedule()}
+ if(el.type==="checkbox"&&el.dataset.multiCb){const a=cur[el.dataset.multiCb];const i=a.indexOf(el.value);if(el.checked&&i<0)a.push(el.value);if(!el.checked&&i>=0)a.splice(i,1);schedule()}
+ if(el.tagName==="SELECT"&&el.dataset.k){setPath(cur,el.dataset.k,el.value);schedule();rerenderKeepScroll()}
+ if(el.tagName==="SELECT"&&el.dataset.room!=null){cur.pieces[+el.dataset.room].type=el.value;schedule();rerenderKeepScroll()}
+ if(el.id==="phin")upload(el.files)});
+document.addEventListener("toggle",e=>{const d=e.target;if(d.dataset?.sec){d.open?openSecs.add(d.dataset.sec):openSecs.delete(d.dataset.sec)}},true);
+document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const a=b.dataset.act;
+ if(a==="settings"){view="settings";render();window.scrollTo(0,0);return}
+ if(a==="tolist"){clearTimeout(setTimer);try{await store.putSet(settings)}catch(_){}view="list";render();window.scrollTo(0,0);return}
+ if(b.dataset.open){cur=structuredClone(visits.find(x=>x.id===b.dataset.open));if(!cur)return;normalize(cur);view="form";openSecs=new Set(["1"]);confirmDel=false;showCopy=false;saveState="ok";render();window.scrollTo(0,0);return}
+ if(a==="new"){cur={id:"v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),...blank()};view="form";openSecs=new Set(["1"]);confirmDel=false;showCopy=false;await flush();render();window.scrollTo(0,0);return}
+ if(a==="back"){clearTimeout(saveTimer);if(pending)await flush();cur=null;view="list";render();window.scrollTo(0,0);return}
+ if(a==="export"){await exportAll();return}
+ if(!cur)return;
+ if(b.dataset.pick){let k=b.dataset.pick,v=b.dataset.v;if(k==="moMode")v=v==="À la journée"?"j":"h";if(k==="statut")v=(STATUTS.find(s=>s[1]===v)||STATUTS[0])[0];setPath(cur,k,v);schedule();rerenderKeepScroll();return}
+ if(b.dataset.yn){const k=b.dataset.yn,v=b.dataset.v==="1";setPath(cur,k,getPath(cur,k)===v?null:v);schedule();rerenderKeepScroll();return}
+ if(b.dataset.multi){const arr=cur[b.dataset.multi],v=b.dataset.v,i=arr.indexOf(v);i<0?arr.push(v):arr.splice(i,1);schedule();rerenderKeepScroll();return}
+ if(a==="addline"){cur.fournitures.push({d:"",q:"",pu:""});schedule();rerenderKeepScroll();const ins=document.querySelectorAll('[data-f="d"][data-line]');ins[ins.length-1]?.focus();return}
+ if(a==="suggest"){const s=surfaces(cur);const big=/(\d+)\s*[x×*]\s*(\d+)/i.exec(cur.carrelage.format);const grand=big&&Math.max(+big[1],+big[2])>=60;
+  const add=[{d:"Colle "+(grand?"C2 S1 (grand format, double encollage)":"C2"),q:String(Math.ceil(s.total*(grand?7:5)/25)),pu:""},{d:"Joint "+(cur.carrelage.couleurJoint||"")+" (sac 5 kg)",q:String(Math.max(1,Math.ceil(s.total/15))),pu:""},{d:"Primaire d'accrochage",q:"1",pu:""}];
+  if(cur.travaux.includes("Douche à l'italienne"))add.push({d:"Kit étanchéité SPEC / natte + bandes",q:"1",pu:""});
+  cur.fournitures=cur.fournitures.filter(l=>l.d||l.pu).concat(add);schedule();rerenderKeepScroll();toast("Quantités indicatives : vérifie selon tes produits");return}
+ if(b.dataset.rmline!=null){cur.fournitures.splice(+b.dataset.rmline,1);if(!cur.fournitures.length)cur.fournitures.push({d:"",q:"",pu:""});schedule();rerenderKeepScroll();return}
+ if(a==="addroom"){cur.pieces.push(newRoom());schedule();rerenderKeepScroll();const ins=document.querySelectorAll('[data-room][data-f="nom"]');ins[ins.length-1]?.focus();return}
+ if(b.dataset.rmroom!=null){cur.pieces.splice(+b.dataset.rmroom,1);if(!cur.pieces.length)cur.pieces.push(newRoom());schedule();rerenderKeepScroll();return}
+ if(b.dataset.delph){const pid=b.dataset.delph;cur.photos=cur.photos.filter(x=>x!==pid);store.delPhoto(pid).catch(()=>{});schedule();rerenderKeepScroll();return}
+ if(a==="copy"){const txt=summary(cur);try{await navigator.clipboard.writeText(txt);toast("Résumé copié");showCopy=false}catch(_){showCopy=true}rerenderKeepScroll();if(showCopy){const c=$("#copybox");c?.focus();c?.select()}return}
+ if(a==="share"){try{await navigator.share({title:"Visite "+(cur.client.nom||""),text:summary(cur)})}catch(_){}return}
+ if(a==="del"){confirmDel=true;rerenderKeepScroll();return}
+ if(a==="del-no"){confirmDel=false;rerenderKeepScroll();return}
+ if(a==="del-yes"){clearTimeout(saveTimer);pending=false;const v=cur;try{await store.del(v.id);for(const p of v.photos||[])await store.delPhoto(p).catch(()=>{});visits=visits.filter(x=>x.id!==v.id);toast("Visite supprimée")}catch(_){toast("Suppression impossible, réessaie.")}cur=null;view="list";render();return}
+});
+function normalize(v){const b=blank();for(const k in b){if(v[k]==null)v[k]=b[k];else if(typeof b[k]==="object"&&!Array.isArray(b[k]))v[k]={...b[k],...v[k]}}if(!v.fournitures?.length)v.fournitures=[{d:"",q:"",pu:""}];if(!v.pieces?.length)v.pieces=[newRoom()]}
+function compress(file){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const img=new Image();
+ img.onload=()=>{const M=1400;let w=img.naturalWidth,h=img.naturalHeight;const k=Math.min(1,M/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(),"image/jpeg",.75)};
+ img.onerror=()=>{URL.revokeObjectURL(url);rej()};img.src=url})}
+async function upload(files){if(!assets||!files?.length)return;setSave("busy");
+ for(const f of files){try{const b=await compress(f);const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await store.putPhoto(id,b);cur.photos.push(id)}catch(e){toast("Photo non enregistrée : format non lu ou mémoire pleine.")}}
+ schedule();rerenderKeepScroll()}
+const toDataURL=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});
+async function exportAll(){const photos={};for(const v of visits)for(const p of v.photos||[]){try{const b=await store.getPhoto(p);if(b)photos[p]=await toDataURL(b)}catch(e){}}
+ const blob=new Blob([JSON.stringify({app:"visites-dsc",version:1,date:new Date().toISOString(),reglages:settings,visites:visits,photos})],{type:"application/json"});const name="sauvegarde-visites-dsc-"+today()+".json";
+ const file=new File([blob],name,{type:"application/json"});
+ if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return}catch(e){if(e&&e.name==="AbortError")return}}
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast("Sauvegarde téléchargée")}
+async function importAll(file){try{const d=JSON.parse(await file.text());if(d.app!=="visites-dsc"||!Array.isArray(d.visites))throw 0;
+ for(const [id,url] of Object.entries(d.photos||{})){const b=await (await fetch(url)).blob();await store.putPhoto(id,b)}
+ let n=0;for(const v of d.visites){const ex=visits.find(x=>x.id===v.id);if(!ex||(v.updatedAt||0)>(ex.updatedAt||0)){await store.put(v);n++}}
+ if(d.reglages&&!num(settings.tauxH)&&!num(settings.tauxJ)){settings={...settings,...d.reglages};await store.putSet(settings)}
+ visits=await store.all();sortV();view="list";render();toast(n+" fiche(s) restaurée(s)")}catch(e){toast("Ce fichier n'est pas une sauvegarde des visites.")}}
+init();
+</script>
+</body>
+</html>
