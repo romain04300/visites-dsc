@@ -165,7 +165,7 @@ pieces:[newRoom()],plinthes:"",nezMarche:"",seuils:"",profiles:"",photos:[],phot
 carrelage:{ref:"",format:"",epaisseur:"",rectifie:null,pose:"Droite",joint:"",couleurJoint:"",fournisseur:"Nous",prixM2:"",m2Boite:"",chute:""},
 douche:{dim:"",etancheite:"",evac:"",pente:"",niche:""},
 fournitures:[{d:"",q:"",pu:""}],moMode:"h",heures:"",jours:"",
-valid:{},budget:"",suivi:{envoye:"",signe:"",intervention:""},statut:"a-chiffrer",notes:"",createdAt:Date.now(),updatedAt:Date.now()}}
+valid:{},budget:"",suivi:{envoye:"",signe:"",intervention:"",commande:""},statut:"a-chiffrer",notes:"",createdAt:Date.now(),updatedAt:Date.now()}}
 
 function surfaces(v){let sol=0,mur=0;for(const p of v.pieces||[]){let s;if(p.type==="Mur")s=num(p.L)*num(p.h)-num(p.ded);else s=num(p.L)*num(p.l)-num(p.ded);s=Math.max(0,s);p.type==="Mur"?mur+=s:sol+=s}
  const chute=v.carrelage.chute!==""?num(v.carrelage.chute):autoChute(v);const total=sol+mur;const cmd=total*(1+chute/100);
@@ -228,6 +228,7 @@ function renderList(){const f=q.trim().toLowerCase();const list=visits.filter(v=
  return `<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="icon-btn" data-act="settings" aria-label="Réglages">⚙</button></div>
  <div class="hero" style="padding-top:0">${MARK("big")}<h1>${esc(parts[0])} <span>${esc(parts.slice(1).join(" "))}</span></h1><p>Fiches de visite avant devis</p></div>
  <button class="btn primary" style="width:100%" data-act="new">+ Nouvelle visite</button>
+ ${toOrder().length?`<button class="btn blue" style="width:100%;margin-top:10px" data-act="orders">Commandes fournisseur à passer (${toOrder().length})</button>`:""}
  <div class="bar"><input type="search" id="q" placeholder="Chercher un client, une adresse…" value="${esc(q)}" aria-label="Chercher"></div>
  <p class="note" style="margin-bottom:10px">Tes fiches restent sur ce téléphone, même sans réseau. Fais une sauvegarde de temps en temps.</p>
  <div class="cards">${list.length?list.map(v=>`<button class="vcard" data-open="${esc(v.id)}"><span class="n">${esc(v.client?.nom||"Client sans nom")}</span>
@@ -295,8 +296,9 @@ function renderForm(){const v=cur,d=done(v),t=totals(v),ta=tvaAuto(v);
  <div class="f"><span class="lbl">Où en est le devis</span>${sel("statut",STATUTS.map(s=>s[1]),(STATUTS.find(s=>s[0]===v.statut)||STATUTS[0])[1])}</div>
  <div class="row2">${inp("suivi.envoye","Devis envoyé le",v.suivi.envoye,"date")}<div class="f"><span class="lbl">Relance à faire le</span><input type="text" readonly value="${v.suivi.envoye?frDate(addDays(v.suivi.envoye,7)):"7 jours après l'envoi"}" aria-label="Relance"></div></div>
  <div class="row2">${inp("suivi.signe","Signé / acompte reçu le",v.suivi.signe,"date")}${inp("suivi.intervention","Date d'intervention",v.suivi.intervention,"date")}</div>
+ ${v.statut==="signe"?orderBlock(v):""}
  <div class="f"><label for="i-notes">Notes libres</label><textarea id="i-notes" data-k="notes">${esc(v.notes)}</textarea></div>
- <div class="bar" style="margin:0;flex-wrap:wrap"><button type="button" class="btn blue" data-act="copy">Copier le résumé</button>${navigator.share?`<button type="button" class="btn ghost" data-act="share">Envoyer le résumé</button>`:""}</div>
+ <div class="bar" style="margin:0;flex-wrap:wrap"><button type="button" class="btn blue" data-act="copy">Copier le résumé pour Henrri</button>${navigator.share?`<button type="button" class="btn ghost" data-act="share">Envoyer le résumé</button>`:""}</div>
  ${showCopy?`<textarea class="copybox" id="copybox" readonly aria-label="Résumé">${esc(summary(v))}</textarea><p class="note">La copie automatique a été refusée : sélectionne le texte et copie-le.</p>`:""}
  ${confirmDel?`<div class="confirm"><b>Supprimer cette visite pour de bon ?</b><div class="r"><button type="button" class="btn danger sm" data-act="del-yes">Oui, supprimer</button><button type="button" class="btn ghost sm" data-act="del-no">Annuler</button></div></div>`:`<button type="button" class="btn ghost sm" data-act="del">Supprimer la visite</button>`}`;
  const secs=[["Client et chantier","Coordonnées, accès, logistique",s1],["Travaux et TVA","Ce qu'il veut, quel taux",s2],["Supports et existant","Ce que tu constates sur place",s3],["Surfaces et photos","m² par pièce, chute, linéaires",s4],["Carrelage et pose","Format, pose, joint, douche",s5],["Fournitures et temps","Calcul du devis",s6],["Avant de partir","À valider et suivi",s7]];
@@ -319,7 +321,34 @@ function summary(v){const t=totals(v),s=t.s,L=[];const p=(a,b)=>{if(b!==""&&b!=n
  L.push("Total HT : "+eur(t.ht));L.push("TVA "+String(t.r).replace(".",",")+" % : "+eur(t.tva));L.push("Total TTC : "+eur(t.ttc));L.push("Acompte "+m2(num(settings.acompte))+" % : "+eur(t.acompte));
  if(v.notes){L.push("");p("Notes",v.notes)}return L.join("\n")}
 
-function render(){const app=$("#app");if(view==="list"){app.innerHTML=renderList();$("#dock").hidden=true}else if(view==="settings"){app.innerHTML=renderSettings();$("#dock").hidden=true}else{app.innerHTML=renderForm();setSave(saveState);paintDock();hydratePhotos()}}
+/* ---------- commande fournisseur ---------- */
+const toOrder=()=>visits.filter(v=>v.statut==="signe"&&!(v.suivi&&v.suivi.commande));
+function supplierList(v){const L=[];L.push("COMMANDE — "+(v.client?.nom||"Client")+(v.client?.adresse?" — "+v.client.adresse:""));
+ if(v.suivi?.intervention)L.push("Pour le chantier du "+frDate(v.suivi.intervention));
+ const s=surfaces(v),c=v.carrelage||{};let n=0;
+ if(c.fournisseur==="Nous"&&s.cmd>0){n++;L.push("- Carrelage "+[c.ref,c.format&&c.format+" cm",c.epaisseur&&c.epaisseur+" mm",c.rectifie?"rectifié":""].filter(Boolean).join(", ")+" : "+m2(s.cmd)+" m²"+(s.boites?" ("+s.boites+" boîtes)":"")+" — chute "+m2(s.chute)+" % comprise")}
+ if(num(v.plinthes)){n++;L.push("- Plinthes assorties : "+m2(num(v.plinthes))+" ml (prévoir 10 % en plus)")}
+ if(num(v.profiles)){n++;L.push("- Profilés / baguettes d'angle : "+m2(num(v.profiles))+" ml")}
+ if(num(v.nezMarche)){n++;L.push("- Nez de marche : "+num(v.nezMarche))}
+ if(num(v.seuils)){n++;L.push("- Seuils / barres de seuil : "+num(v.seuils))}
+ if(c.couleurJoint)L.push("  (joint couleur : "+c.couleurJoint+(c.joint?", "+c.joint+" mm":"")+")");
+ (v.fournitures||[]).filter(l=>(l.d||"").trim()).forEach(l=>{n++;L.push("- "+(num(l.q)||1)+" × "+l.d.trim())});
+ if(!n)L.push("(aucun matériel saisi dans la fiche)");
+ if(c.fournisseur==="Le client")L.push("Carrelage fourni par le client"+(s.cmd>0?" : lui dire d'acheter "+m2(s.cmd)+" m²"+(s.boites?" ("+s.boites+" boîtes)":""):""));
+ return L.join("\n")}
+function orderBlock(v){return `<div class="f" style="border:2px solid var(--blue);border-radius:10px;padding:12px;gap:10px"><span class="lbl" style="color:var(--blue)">Commande fournisseur</span>
+ <pre style="margin:0;white-space:pre-wrap;font-family:inherit;font-size:15px">${esc(supplierList(v))}</pre>
+ <div class="bar" style="margin:0;flex-wrap:wrap"><button type="button" class="btn blue sm" data-act="copyorder">Copier la liste</button>${navigator.share?`<button type="button" class="btn ghost sm" data-act="shareorder">Envoyer au fournisseur</button>`:""}</div>
+ ${inp("suivi.commande","Commandé le",v.suivi.commande,"date")}</div>`}
+function renderOrders(){const list=toOrder();
+ return `<div class="top"><button class="icon-btn" data-act="tolist" aria-label="Retour aux visites">‹</button><div class="t"><h1>Commandes à passer</h1><div class="sub">${list.length} chantier${list.length>1?"s":""} signé${list.length>1?"s":""}, matériel pas encore commandé</div></div></div>
+ ${list.length?`<button class="btn blue" style="width:100%;margin-bottom:12px" data-act="copyall">Copier toutes les commandes</button>`:""}
+ <div class="cards">${list.length?list.map(v=>`<div class="vcard" style="display:flex;flex-direction:column;gap:10px">
+ <pre style="margin:0;white-space:pre-wrap;font-family:inherit;font-size:15px">${esc(supplierList(v))}</pre>
+ <div class="bar" style="margin:0;flex-wrap:wrap"><button class="btn ghost sm" data-copyorder="${esc(v.id)}">Copier</button><button class="btn primary sm" data-ordered="${esc(v.id)}">Marquer commandé</button></div></div>`).join("")
+ :`<div class="empty"><b>Tout est commandé</b>Quand un devis passe en « Signé », sa liste de matériel arrive ici.</div>`}</div>`}
+async function copyText(txt,ok){try{await navigator.clipboard.writeText(txt);toast(ok)}catch(_){toast("Copie refusée : ouvre la fiche et sélectionne le texte")}}
+function render(){const app=$("#app");if(view==="orders"){app.innerHTML=renderOrders();$("#dock").hidden=true;return}if(view==="list"){app.innerHTML=renderList();$("#dock").hidden=true}else if(view==="settings"){app.innerHTML=renderSettings();$("#dock").hidden=true}else{app.innerHTML=renderForm();setSave(saveState);paintDock();hydratePhotos()}}
 function paintDock(){const d=$("#dock");if(view!=="form"||!cur){d.hidden=true;return}const t=totals(cur);d.hidden=false;
  d.innerHTML=`<div class="in"><div class="tot"><small>${m2(t.s.total)} m² · TVA ${String(t.r).replace(".",",")} % · acompte ${eur(t.acompte)}</small><b>${eur(t.ttc)}</b></div><button class="btn primary" data-act="back">Terminer</button></div>`;
  const c=$("#calc");if(c)c.innerHTML=calcRows(t);const sf=$("#surf");if(sf)sf.innerHTML=surfHTML(cur);
@@ -353,10 +382,15 @@ document.addEventListener("click",async e=>{const b=e.target.closest("button");i
  if(a==="tolist"){clearTimeout(setTimer);try{await store.putSet(settings)}catch(_){}view="list";render();window.scrollTo(0,0);return}
  if(b.dataset.open){cur=structuredClone(visits.find(x=>x.id===b.dataset.open));if(!cur)return;normalize(cur);view="form";openSecs=new Set(["1"]);confirmDel=false;showCopy=false;saveState="ok";render();window.scrollTo(0,0);return}
  if(a==="new"){cur={id:"v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),...blank()};view="form";openSecs=new Set(["1"]);confirmDel=false;showCopy=false;await flush();render();window.scrollTo(0,0);return}
+ if(a==="orders"){view="orders";render();window.scrollTo(0,0);return}
+ if(a==="tolist"&&view==="orders"){view="list";render();window.scrollTo(0,0);return}
+ if(a==="copyall"){await copyText(toOrder().map(supplierList).join("\n\n"),"Toutes les commandes copiées");return}
+ if(b.dataset.copyorder){const v=visits.find(x=>x.id===b.dataset.copyorder);if(v)await copyText(supplierList(v),"Commande copiée");return}
+ if(b.dataset.ordered){const v=visits.find(x=>x.id===b.dataset.ordered);if(!v)return;cur=structuredClone(v);normalize(cur);cur.suivi.commande=today();cur.updatedAt=Date.now();await flush();cur=null;toast("Marqué comme commandé");render();return}
  if(a==="back"){clearTimeout(saveTimer);if(pending)await flush();cur=null;view="list";render();window.scrollTo(0,0);return}
  if(a==="export"){await exportAll();return}
  if(!cur)return;
- if(b.dataset.pick){let k=b.dataset.pick,v=b.dataset.v;if(k==="moMode")v=v==="À la journée"?"j":"h";if(k==="statut")v=(STATUTS.find(s=>s[1]===v)||STATUTS[0])[0];setPath(cur,k,v);schedule();rerenderKeepScroll();return}
+ if(b.dataset.pick){let k=b.dataset.pick,v=b.dataset.v;if(k==="moMode")v=v==="À la journée"?"j":"h";if(k==="statut"){v=(STATUTS.find(s=>s[1]===v)||STATUTS[0])[0];if(v==="signe"&&!cur.suivi.signe)cur.suivi.signe=today()}setPath(cur,k,v);schedule();rerenderKeepScroll();return}
  if(b.dataset.yn){const k=b.dataset.yn,v=b.dataset.v==="1";setPath(cur,k,getPath(cur,k)===v?null:v);schedule();rerenderKeepScroll();return}
  if(b.dataset.multi){const arr=cur[b.dataset.multi],v=b.dataset.v,i=arr.indexOf(v);i<0?arr.push(v):arr.splice(i,1);schedule();rerenderKeepScroll();return}
  if(a==="addline"){cur.fournitures.push({d:"",q:"",pu:""});schedule();rerenderKeepScroll();const ins=document.querySelectorAll('[data-f="d"][data-line]');ins[ins.length-1]?.focus();return}
@@ -368,8 +402,10 @@ document.addEventListener("click",async e=>{const b=e.target.closest("button");i
  if(a==="addroom"){cur.pieces.push(newRoom());schedule();rerenderKeepScroll();const ins=document.querySelectorAll('[data-room][data-f="nom"]');ins[ins.length-1]?.focus();return}
  if(b.dataset.rmroom!=null){cur.pieces.splice(+b.dataset.rmroom,1);if(!cur.pieces.length)cur.pieces.push(newRoom());schedule();rerenderKeepScroll();return}
  if(b.dataset.delph){const pid=b.dataset.delph;cur.photos=cur.photos.filter(x=>x!==pid);store.delPhoto(pid).catch(()=>{});schedule();rerenderKeepScroll();return}
- if(a==="copy"){const txt=summary(cur);try{await navigator.clipboard.writeText(txt);toast("Résumé copié");showCopy=false}catch(_){showCopy=true}rerenderKeepScroll();if(showCopy){const c=$("#copybox");c?.focus();c?.select()}return}
+ if(a==="copy"){const txt=summary(cur);try{await navigator.clipboard.writeText(txt);toast("Résumé copié : colle-le dans Henrri");showCopy=false}catch(_){showCopy=true}rerenderKeepScroll();if(showCopy){const c=$("#copybox");c?.focus();c?.select()}return}
  if(a==="share"){try{await navigator.share({title:"Visite "+(cur.client.nom||""),text:summary(cur)})}catch(_){}return}
+ if(a==="copyorder"){await copyText(supplierList(cur),"Commande copiée");return}
+ if(a==="shareorder"){try{await navigator.share({title:"Commande "+(cur.client.nom||""),text:supplierList(cur)})}catch(_){}return}
  if(a==="del"){confirmDel=true;rerenderKeepScroll();return}
  if(a==="del-no"){confirmDel=false;rerenderKeepScroll();return}
  if(a==="del-yes"){clearTimeout(saveTimer);pending=false;const v=cur;try{await store.del(v.id);for(const p of v.photos||[])await store.delPhoto(p).catch(()=>{});visits=visits.filter(x=>x.id!==v.id);toast("Visite supprimée")}catch(_){toast("Suppression impossible, réessaie.")}cur=null;view="list";render();return}
